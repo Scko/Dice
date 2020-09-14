@@ -6,12 +6,12 @@ namespace Dice.BusinessLogic
 {
     public class MathHelper : IMathHelper
     {
-        public decimal Combinations(int n, int k)
+        public double Combinations(int n, int k)
         {
             BigInteger a = Factorial(n);
             BigInteger b = Factorial(k);
             BigInteger c = Factorial(n - k);
-            return (decimal)(a / (b * c));
+            return (double)(a / (b * c));
         }
         public BigInteger Factorial(int num)
         {

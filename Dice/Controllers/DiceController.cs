@@ -13,10 +13,12 @@ namespace Dice.Controllers
     public class DiceController : ControllerBase
     {
         private readonly IProbabilityCalculator _probabilityCalculator;
+        private readonly IMathHelper _mathHelper;
         public DiceController(
-            IProbabilityCalculator probabilityCalculator)
+            IProbabilityCalculator probabilityCalculator, IMathHelper mathHelper)
         {
             _probabilityCalculator = probabilityCalculator;
+            _mathHelper = mathHelper;
         }
 
         /// <summary>
@@ -50,7 +52,7 @@ namespace Dice.Controllers
         /// <summary>
         /// Calculates the possible number of ways to roll the targetSum with a given number of dice.
         /// </summary>
-        /// <param name="targetSum">The sum of the dice being rolled</param>
+        /// <param name="targetSum">The sum of the dice being rolled. Ex. If rolling 2 dice, 6 sided, a target sum can be up to 12. You could put 13, but the result will be 0.</param>
         /// <param name="dice">The number of dice being rolled</param>
         /// <param name="sides">The number of sides on the dice</param>
         /// <returns></returns>
@@ -58,7 +60,7 @@ namespace Dice.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<decimal>> GetWaysToRoll([FromQuery] WaysToRollInputModel waysToRollInputModel)
+        public async Task<ActionResult<double>> GetWaysToRoll([FromQuery] WaysToRollInputModel waysToRollInputModel)
         {
             if (!ModelState.IsValid)
             {

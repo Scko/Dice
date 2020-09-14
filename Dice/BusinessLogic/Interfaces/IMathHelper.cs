@@ -4,7 +4,7 @@ namespace Dice.BusinessLogic.Interfaces
 {
     public interface IMathHelper
     {
-        decimal Combinations(int n, int k);
+        double Combinations(int n, int k);
         BigInteger Factorial(int num);
         double FactorialStirlingApproximation(int num);
     }

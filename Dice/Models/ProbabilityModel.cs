@@ -2,8 +2,8 @@
 {
     public class ProbabilityModel
     {
-        public decimal Win { get; set; }
-        public decimal Lose { get; set; }
-        public decimal Tie { get; set; }
+        public double Win { get; set; }
+        public double Lose { get; set; }
+        public double Tie { get; set; }
     }
 }
