@@ -36,7 +36,7 @@ namespace DiceMVC.Controllers
             {
                 using (var httpClient = new HttpClient())
                 {
-                    HttpResponseMessage result = await httpClient.GetAsync($"https://localhost:44393/api/Dice?Dice1={diceVM.dice1}&Dice2={diceVM.dice2}&Sides=6");
+                    HttpResponseMessage result = await httpClient.GetAsync($"https://diceservice.azurewebsites.net/api/Dice?Dice1={diceVM.dice1}&Dice2={diceVM.dice2}&Sides=6");
                     var responseBody = await result.Content.ReadAsStringAsync();
                     probabilityModel = JsonConvert.DeserializeObject<ProbabilityModel>(responseBody);
                 }
