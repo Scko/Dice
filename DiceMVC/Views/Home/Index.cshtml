@@ -1,21 +1,22 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
-@model DiceViewModel
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    @using (Html.BeginForm("Index", "Home", FormMethod.Get))
-    {
-        @Html.LabelFor(m => m.dice1)
-        @Html.TextBoxFor(m => m.dice1)
-        @Html.LabelFor(m => m.dice2)
-        @Html.TextBoxFor(m => m.dice2)
-        <button>Calculate</button>
-    }
-    @Html.LabelFor(m => m.Win)
-    @Html.DisplayFor(m => m.Win)
-    @Html.LabelFor(m => m.Lose)
-    @Html.DisplayFor(m => m.Lose)
-    @Html.LabelFor(m => m.Tie)
-    @Html.DisplayFor(m => m.Tie)
-</div>
+
+    @model DiceViewModel
+    <div>
+        @using (Html.BeginForm("Index", "Home", FormMethod.Get))
+        {
+            @Html.LabelFor(m => m.Dice1)
+            @Html.TextBoxFor(m => m.Dice1)
+            @Html.LabelFor(m => m.Dice2)
+            @Html.TextBoxFor(m => m.Dice2)
+            <button>Calculate</button>
+        }
+        @Html.LabelFor(m => m.Win)
+        @Html.DisplayFor(m => m.Win)
+        @Html.LabelFor(m => m.Lose)
+        @Html.DisplayFor(m => m.Lose)
+        @Html.LabelFor(m => m.Tie)
+        @Html.DisplayFor(m => m.Tie)
+    </div>
+
