@@ -23,7 +23,7 @@ namespace DiceUnitTests.Controllers
         {
             _mockProbabilityCalculator
                 .Setup(pc => pc.ProbabilityToWinLoseTie(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
-                .Returns(new ProbabilityModel { Win = (decimal).5, Lose = (decimal).3, Tie = (decimal).2 });
+                .Returns(new ProbabilityModel { Win = .5, Lose = .3, Tie = .2 });
 
             var result = await _diceController.Get(new ProbabilityInputModel { Dice1 = 1, Dice2 = 2, Sides = 6 });
             var okResult = (OkObjectResult)result.Result;

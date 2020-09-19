@@ -13,12 +13,10 @@ namespace Dice.Controllers
     public class DiceController : ControllerBase
     {
         private readonly IProbabilityCalculator _probabilityCalculator;
-        private readonly IMathHelper _mathHelper;
         public DiceController(
-            IProbabilityCalculator probabilityCalculator, IMathHelper mathHelper)
+            IProbabilityCalculator probabilityCalculator)
         {
             _probabilityCalculator = probabilityCalculator;
-            _mathHelper = mathHelper;
         }
 
         /// <summary>
