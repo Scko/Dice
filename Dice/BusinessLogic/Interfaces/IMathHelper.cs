@@ -1,11 +1,7 @@
-﻿using System.Numerics;
+namespace Dice.BusinessLogic.Interfaces;
 
-namespace Dice.BusinessLogic.Interfaces
+public interface IMathHelper
 {
-    public interface IMathHelper
-    {
-        double Combinations(int n, int k);
-        BigInteger Factorial(int num);
-        double FactorialStirlingApproximation(int num);
-    }
+    double Combinations(int n, int k);
+    double WaysToRoll(int sum, int dice, int sides);
 }

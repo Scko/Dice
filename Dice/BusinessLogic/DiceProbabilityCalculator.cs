@@ -1,141 +1,86 @@
-﻿using Dice.BusinessLogic.Interfaces;
+using Dice.BusinessLogic.Interfaces;
 using Dice.Models;
-using System;
-using System.Collections.Generic;
 
-namespace Dice.BusinessLogic
+namespace Dice.BusinessLogic;
+
+public class DiceProbabilityCalculator : IProbabilityCalculator
 {
-    public class DiceProbabilityCalculator : IProbabilityCalculator
+    private readonly IMathHelper _mathHelper;
+
+    public DiceProbabilityCalculator(IMathHelper mathHelper)
     {
-        private readonly IMathHelper _mathHelper;
-        public DiceProbabilityCalculator(IMathHelper mathHelper)
-        {
-            _mathHelper = mathHelper;
-        }
+        _mathHelper = mathHelper;
+    }
 
-        public ProbabilityModel ProbabilityToWinLoseTie(int d1, int d2, int sides)
+    public ProbabilityModel ProbabilityToWinLoseTie(int d1, int d2, int sides)
+    {
+        var cache = new Dictionary<int, Dictionary<int, double>>();
+        var totalPossible = Math.Pow(sides, d1 + d2);
+        var pTie  = ProbabilityToTieWithCache(d1, d2, sides, cache)  / totalPossible;
+        var pLose = ProbabilityToLoseWithCache(d1, d2, sides, cache) / totalPossible;
+        var pWin  = ProbabilityToWinWithCache(d1, d2, sides, cache)  / totalPossible;
+        return new ProbabilityModel
         {
-            var prevCalc = new Dictionary<int, Dictionary<int, double>>();
-            double pTie, pLose, pWin;
-            var totalPossible = Math.Pow(sides, d1 + d2);
-            pTie = ProbabilityToTieWithCache(d1, d2, sides, prevCalc) / totalPossible;
-            pLose = ProbabilityToLoseWithCache(d1, d2, sides, prevCalc) / totalPossible;
-            pWin = ProbabilityToWinWithCache(d1, d2, sides, prevCalc) / totalPossible;
-            return new ProbabilityModel { Lose = Math.Round(pLose,4), Tie = Math.Round(pTie, 4), Win = Math.Round(pWin, 4) };
-        }
-        
-        public double ProbabilityToWinWithCache(int d1, int d2, int sides, Dictionary<int, Dictionary<int, double>> prevCalc)
+            Win  = Math.Round(pWin,  4),
+            Lose = Math.Round(pLose, 4),
+            Tie  = Math.Round(pTie,  4)
+        };
+    }
+
+    private double ProbabilityToWinWithCache(int d1, int d2, int sides, Dictionary<int, Dictionary<int, double>> cache)
+    {
+        double prob = 0;
+        for (int i = d2; i <= d2 * sides; i++)
         {
-            double prob = 0;
-            for (int i = d2; i <= d2 * sides; i++)
+            var waysToRollD2 = GetCached(cache, i, d2, sides);
+
+            double waysToRollD1 = 0;
+            for (int j = d1 * sides; j > i; j--)
             {
-                double waysToRollD2 = 0;
-                if (prevCalc.ContainsKey(i) && prevCalc[i].ContainsKey(d2))
-                {
-                    waysToRollD2 += prevCalc[i][d2];
-                }
-                else
-                {
-                    prevCalc[i] = new Dictionary<int, double>() { { d2, WaysToRoll(i, d2, sides) } };
-                    waysToRollD2 += prevCalc[i][d2];
-                }
-
-                double waysToRollD1 = 0;
-                for (int j = d1 * sides; j > i; j--)
-                {
-                    if (prevCalc.ContainsKey(j) && prevCalc[j].ContainsKey(d1))
-                    {
-                        waysToRollD1 += prevCalc[j][d1];
-                    }
-                    else
-                    {
-                        prevCalc[j] = new Dictionary<int, double>() { { d1, WaysToRoll(j, d1, sides) } };
-                        waysToRollD1 += prevCalc[j][d1];
-                    }
-                }
-                prob += waysToRollD1 * waysToRollD2;
+                waysToRollD1 += GetCached(cache, j, d1, sides);
             }
-
-            return prob;
+            prob += waysToRollD1 * waysToRollD2;
         }
+        return prob;
+    }
 
-        public double ProbabilityToLoseWithCache(int d1, int d2, int sides, Dictionary<int, Dictionary<int, double>> prevCalc)
+    private double ProbabilityToLoseWithCache(int d1, int d2, int sides, Dictionary<int, Dictionary<int, double>> cache)
+    {
+        double prob = 0;
+        for (int i = d2; i <= d2 * sides; i++)
         {
-            double prob = 0;
-            for (int i = d2; i <= d2 * sides; i++)
+            var waysToRollD2 = GetCached(cache, i, d2, sides);
+
+            double waysToRollD1 = 0;
+            for (int j = d1; j < i; j++)
             {
-                double waysToRollD2 = 0;
-                if (prevCalc.ContainsKey(i) && prevCalc[i].ContainsKey(d2))
-                {
-                    waysToRollD2 += prevCalc[i][d2];
-                }
-                else
-                {
-                    prevCalc[i] = new Dictionary<int, double>() { { d2, WaysToRoll(i, d2, sides) } };
-                    waysToRollD2 += prevCalc[i][d2];
-                }
-                double waysToRollD1 = 0;
-                for (int j = d1; j < i; j++)
-                {
-                    if (prevCalc.ContainsKey(j) && prevCalc[j].ContainsKey(d1))
-                    {
-                        waysToRollD1 += prevCalc[j][d1];
-                    }
-                    else
-                    {
-                        prevCalc[j] = new Dictionary<int, double>() { { d1, WaysToRoll(j, d1, sides) } };
-                        waysToRollD1 += prevCalc[j][d1];
-                    }
-                }
-                prob += waysToRollD1 * waysToRollD2;
+                waysToRollD1 += GetCached(cache, j, d1, sides);
             }
-
-            return prob;
+            prob += waysToRollD1 * waysToRollD2;
         }
+        return prob;
+    }
 
-        public double ProbabilityToTieWithCache(int d1, int d2, int sides, Dictionary<int, Dictionary<int, double>> prevCalc)
+    private double ProbabilityToTieWithCache(int d1, int d2, int sides, Dictionary<int, Dictionary<int, double>> cache)
+    {
+        double prob = 0;
+        for (int i = d2; i <= d2 * sides; i++)
         {
-            double prob = 0;
-            for (int i = d2; i <= d2 * sides; i++)
-            {
-                double waysToRollD2 = 0;
-                if (prevCalc.ContainsKey(i) && prevCalc[i].ContainsKey(d2))
-                {
-                    waysToRollD2 += prevCalc[i][d2];
-                }
-                else
-                {
-                    prevCalc[i] = new Dictionary<int, double>() { { d2, WaysToRoll(i, d2, sides) } };
-                    waysToRollD2 += prevCalc[i][d2];
-                }
-                double waysToRollD1 = 0;
-                if (prevCalc.ContainsKey(i) && prevCalc[i].ContainsKey(d1))
-                {
-                    waysToRollD1 += prevCalc[i][d1];
-                }
-                else
-                {
-                    prevCalc[i] = new Dictionary<int, double>() { { d1, WaysToRoll(i, d1, sides) } };
-                    waysToRollD1 += prevCalc[i][d1];
-                }
-                prob += waysToRollD1 * waysToRollD2;
-            }
-
-            return prob;
+            var waysToRollD2 = GetCached(cache, i, d2, sides);
+            var waysToRollD1 = GetCached(cache, i, d1, sides);
+            prob += waysToRollD1 * waysToRollD2;
         }
+        return prob;
+    }
 
-        public double WaysToRoll(int sum, int dice, int sides)
-        {
-            var kMax = (int)Math.Floor((double)(sum - dice) / sides);
+    private double GetCached(Dictionary<int, Dictionary<int, double>> cache, int sum, int dice, int sides)
+    {
+        if (!cache.TryGetValue(sum, out var sumCache))
+            cache[sum] = sumCache = new Dictionary<int, double>();
 
-            double total = 0;
-            for (int k = 0; k <= kMax; k++)
-            {
-                total += Math.Pow(-1, k) * _mathHelper.Combinations(dice, k) * _mathHelper.Combinations((sum - sides * k - 1), (dice - 1));
-            }
+        if (!sumCache.TryGetValue(dice, out var value))
+            sumCache[dice] = value = _mathHelper.WaysToRoll(sum, dice, sides);
 
-            return total;
-        }
-
+        return value;
     }
 }

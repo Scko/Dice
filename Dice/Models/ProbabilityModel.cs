@@ -1,9 +1,8 @@
-﻿namespace Dice.Models
+namespace Dice.Models;
+
+public class ProbabilityModel
 {
-    public class ProbabilityModel
-    {
-        public double Win { get; set; }
-        public double Lose { get; set; }
-        public double Tie { get; set; }
-    }
+    public double Win { get; init; }
+    public double Lose { get; init; }
+    public double Tie { get; init; }
 }

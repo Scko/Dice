@@ -1,14 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace Dice.Models
+namespace Dice.Models;
+
+public class WaysToRollInputModel
 {
-    public class WaysToRollInputModel
-    {
-        [Required]
-        public int TargetSum { get; set; }
-        [Required, Range(1, 20)]
-        public int Dice { get; set; }
-        [Required, Range(1, 100)]
-        public int Sides { get; set; }
-    }
+    [Required, Range(1, int.MaxValue)]
+    public int TargetSum { get; init; }
+    [Required, Range(1, 20)]
+    public int Dice { get; init; }
+    [Required, Range(1, 100)]
+    public int Sides { get; init; }
 }
