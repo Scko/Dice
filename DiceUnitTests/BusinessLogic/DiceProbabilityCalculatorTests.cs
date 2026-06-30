@@ -1,6 +1,7 @@
 using Dice.BusinessLogic;
 using Dice.BusinessLogic.Interfaces;
 using Moq;
+using System.Numerics;
 using Xunit;
 
 namespace DiceUnitTests.BusinessLogic;
@@ -70,7 +71,7 @@ public class DiceProbabilityCalculatorTests
     {
         _mockMathHelper
             .Setup(m => m.WaysToRoll(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
-            .Returns(1);
+            .Returns(BigInteger.One);
 
         _calculator.ProbabilityToWinLoseTie(1, 1, 6);
 

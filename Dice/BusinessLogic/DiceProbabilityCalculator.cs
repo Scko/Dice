@@ -1,5 +1,6 @@
 using Dice.BusinessLogic.Interfaces;
 using Dice.Models;
+using System.Numerics;
 
 namespace Dice.BusinessLogic;
 
@@ -12,75 +13,68 @@ public class DiceProbabilityCalculator : IProbabilityCalculator
         _mathHelper = mathHelper;
     }
 
+    public BigInteger WaysToRoll(int sum, int dice, int sides)
+        => _mathHelper.WaysToRoll(sum, dice, sides);
+
     public ProbabilityModel ProbabilityToWinLoseTie(int d1, int d2, int sides)
     {
-        var cache = new Dictionary<int, Dictionary<int, double>>();
-        var totalPossible = Math.Pow(sides, d1 + d2);
-        var pTie  = ProbabilityToTieWithCache(d1, d2, sides, cache)  / totalPossible;
-        var pLose = ProbabilityToLoseWithCache(d1, d2, sides, cache) / totalPossible;
-        var pWin  = ProbabilityToWinWithCache(d1, d2, sides, cache)  / totalPossible;
+        var totalPossible = BigInteger.Pow(sides, d1 + d2);
         return new ProbabilityModel
         {
-            Win  = Math.Round(pWin,  4),
-            Lose = Math.Round(pLose, 4),
-            Tie  = Math.Round(pTie,  4)
+            Win  = Ratio(CountWin(d1, d2, sides),  totalPossible),
+            Lose = Ratio(CountLose(d1, d2, sides), totalPossible),
+            Tie  = Ratio(CountTie(d1, d2, sides),  totalPossible)
         };
     }
 
-    private double ProbabilityToWinWithCache(int d1, int d2, int sides, Dictionary<int, Dictionary<int, double>> cache)
+    private BigInteger CountWin(int d1, int d2, int sides)
     {
-        double prob = 0;
+        BigInteger count = 0;
         for (int i = d2; i <= d2 * sides; i++)
         {
-            var waysToRollD2 = GetCached(cache, i, d2, sides);
+            var waysToRollD2 = _mathHelper.WaysToRoll(i, d2, sides);
 
-            double waysToRollD1 = 0;
+            BigInteger waysToRollD1 = 0;
             for (int j = d1 * sides; j > i; j--)
             {
-                waysToRollD1 += GetCached(cache, j, d1, sides);
+                waysToRollD1 += _mathHelper.WaysToRoll(j, d1, sides);
             }
-            prob += waysToRollD1 * waysToRollD2;
+            count += waysToRollD1 * waysToRollD2;
         }
-        return prob;
+        return count;
     }
 
-    private double ProbabilityToLoseWithCache(int d1, int d2, int sides, Dictionary<int, Dictionary<int, double>> cache)
+    private BigInteger CountLose(int d1, int d2, int sides)
     {
-        double prob = 0;
+        BigInteger count = 0;
         for (int i = d2; i <= d2 * sides; i++)
         {
-            var waysToRollD2 = GetCached(cache, i, d2, sides);
+            var waysToRollD2 = _mathHelper.WaysToRoll(i, d2, sides);
 
-            double waysToRollD1 = 0;
+            BigInteger waysToRollD1 = 0;
             for (int j = d1; j < i; j++)
             {
-                waysToRollD1 += GetCached(cache, j, d1, sides);
+                waysToRollD1 += _mathHelper.WaysToRoll(j, d1, sides);
             }
-            prob += waysToRollD1 * waysToRollD2;
+            count += waysToRollD1 * waysToRollD2;
         }
-        return prob;
+        return count;
     }
 
-    private double ProbabilityToTieWithCache(int d1, int d2, int sides, Dictionary<int, Dictionary<int, double>> cache)
+    private BigInteger CountTie(int d1, int d2, int sides)
     {
-        double prob = 0;
+        BigInteger count = 0;
         for (int i = d2; i <= d2 * sides; i++)
         {
-            var waysToRollD2 = GetCached(cache, i, d2, sides);
-            var waysToRollD1 = GetCached(cache, i, d1, sides);
-            prob += waysToRollD1 * waysToRollD2;
+            var waysToRollD2 = _mathHelper.WaysToRoll(i, d2, sides);
+            var waysToRollD1 = _mathHelper.WaysToRoll(i, d1, sides);
+            count += waysToRollD1 * waysToRollD2;
         }
-        return prob;
+        return count;
     }
 
-    private double GetCached(Dictionary<int, Dictionary<int, double>> cache, int sum, int dice, int sides)
-    {
-        if (!cache.TryGetValue(sum, out var sumCache))
-            cache[sum] = sumCache = new Dictionary<int, double>();
-
-        if (!sumCache.TryGetValue(dice, out var value))
-            sumCache[dice] = value = _mathHelper.WaysToRoll(sum, dice, sides);
-
-        return value;
-    }
+    // Counts and total stay within double's range across the validated input ranges
+    // (sides ≤ 20, dice ≤ 31), so converting to double for the final ratio is safe.
+    private static double Ratio(BigInteger count, BigInteger total)
+        => Math.Round((double)count / (double)total, 4);
 }

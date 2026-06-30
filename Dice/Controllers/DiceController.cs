@@ -1,8 +1,7 @@
-using System;
 using Dice.BusinessLogic.Interfaces;
 using Dice.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Numerics;
 
 namespace Dice.Controllers;
 
@@ -11,12 +10,10 @@ namespace Dice.Controllers;
 public class DiceController : ControllerBase
 {
     private readonly IProbabilityCalculator _probabilityCalculator;
-    private readonly IMathHelper _mathHelper;
 
-    public DiceController(IProbabilityCalculator probabilityCalculator, IMathHelper mathHelper)
+    public DiceController(IProbabilityCalculator probabilityCalculator)
     {
         _probabilityCalculator = probabilityCalculator;
-        _mathHelper = mathHelper;
     }
 
     /// <summary>
@@ -27,18 +24,10 @@ public class DiceController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public ActionResult<ProbabilityModel> Get([FromQuery] ProbabilityInputModel probabilityInputModel)
     {
-        try
-        {
-            return Ok(_probabilityCalculator.ProbabilityToWinLoseTie(
-                probabilityInputModel.Dice1, probabilityInputModel.Dice2, probabilityInputModel.Sides));
-        }
-        catch (OverflowException)
-        {
-            return UnprocessableEntity("Inputs too large to calculate.");
-        }
+        return Ok(_probabilityCalculator.ProbabilityToWinLoseTie(
+            probabilityInputModel.Dice1, probabilityInputModel.Dice2, probabilityInputModel.Sides));
     }
 
     /// <summary>
@@ -49,17 +38,9 @@ public class DiceController : ControllerBase
     [HttpGet("WaysToRoll")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-    public ActionResult<double> GetWaysToRoll([FromQuery] WaysToRollInputModel waysToRollInputModel)
+    public ActionResult<BigInteger> GetWaysToRoll([FromQuery] WaysToRollInputModel waysToRollInputModel)
     {
-        try
-        {
-            return _mathHelper.WaysToRoll(
-                waysToRollInputModel.TargetSum, waysToRollInputModel.Dice, waysToRollInputModel.Sides);
-        }
-        catch (OverflowException)
-        {
-            return UnprocessableEntity("Inputs too large to calculate.");
-        }
+        return _probabilityCalculator.WaysToRoll(
+            waysToRollInputModel.TargetSum, waysToRollInputModel.Dice, waysToRollInputModel.Sides);
     }
 }
